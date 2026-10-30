@@ -2,28 +2,16 @@
 var map = window.L.map('map').setView([45.5235494,-122.654917], 13);
 
 
-var demUrl = 'https://opendata.arcgis.com/datasets/43447f114b184e5a81024ca65bddf5f9_126.geojson';
-
+var demUrl = 'Residential_Demolition_Permits.geojson';
+var boundaryUrl = 'pdxBoundaryCount.geojson';
 
 
 // base tile layer
-window.L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.{ext}', {
-	attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-	subdomains: 'abcd',
-	minZoom: 0,
-	maxZoom: 20,
-	ext: 'png'
+L.tileLayer('https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://stamen.com/">Stamen Design</a> &copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
+  maxZoom: 20
 }).addTo(map);
 
-
-window.L.geoJSON(window.nebdata, {
-  style: style,
-  onEachFeature: function onEachFeature(feature, layer) {
-    layer.on({
-      click: layer.bindPopup(`<h2>${feature.properties.NAME}</h2><p>Number of demolitions ${feature.properties.NUMPOINTS}</p>`)
-    })
-  }
-}).addTo(map);
 
 function style(feature) {
   return {
@@ -33,25 +21,38 @@ function style(feature) {
     color: 'white',
     dashArray: '3',
     fillOpacity: 0.7
-  }
-
-  function getColor(d) {
-    return d < 10 ? '#e5f5f9' :
-           d < 20 ? '#ccece6' :
-           d < 40 ? '#99d8c9' :
-           d < 80 ? '#66c2a4' :
-           d < 120 ? '#41ae76' :
-           d < 160 ? '#238b45' :
-           d < 200 ? '#006d2c' :
-           d < 240 ? '#00441b' :
-                     '#f7fcfd'
-  }
+  };
 }
+
+
+function getColor(d) {
+  return d >= 275 ? '#980043' :
+         d >= 189 ? '#dd1c77' :
+         d >= 113 ? '#df65b0' :
+         d >= 65  ? '#d7b5d8' :
+         d >= 23  ? '#f1eef6' :
+         '#c5c3c6';
+}
+
+// Neighborhood boundaries
+fetch(boundaryUrl)
+  .then(resp => resp.json())
+  .then(json => {
+    L.geoJSON(json, {
+      style: style,
+      onEachFeature: (feature, layer) => {
+        layer.bindPopup(`<h2>${feature.properties.MAPLABEL}</h2>
+          <p>Number of demolitions: ${feature.properties.NUMPOINTS}</p>`);
+      }
+    }).addTo(map).bringToBack();
+  })
+  .catch(err => console.error(err));
+
 
 var demLayer = window.L.geoJSON(null, {
   pointToLayer: (feature, latlng) => new window.L.CircleMarker(latlng, {
     radius: 3,
-    fillColor: "#254732",
+    fillColor: "#4c0353",
     color: 'transparent',
     opacity: 1,
     fillOpacity: 0.4
