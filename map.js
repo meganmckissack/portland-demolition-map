@@ -26,11 +26,11 @@ function style(feature) {
 
 
 function getColor(d) {
-  return d >= 275 ? '#980043' :
-         d >= 189 ? '#dd1c77' :
-         d >= 113 ? '#df65b0' :
-         d >= 65  ? '#d7b5d8' :
-         d >= 23  ? '#f1eef6' :
+  return d > 200 ? '#980043' :
+         d > 150 ? '#dd1c77' :
+         d > 100 ? '#b95191' :
+         d > 50  ? '#d879a8' :
+         d > 20  ? '#f78ac2' :
          '#c5c3c6';
 }
 
@@ -73,6 +73,24 @@ var demLayer = window.L.geoJSON(null, {
     `)
   },
 })
+
+const legend = L.control({ position: 'bottomright' });
+
+legend.onAdd = function (map) {
+  const div = L.DomUtil.create('div', 'info legend');
+  // match the breaks in your getColor()
+  const grades = [0, 10, 50, 100, 150, 200, 240];
+
+  div.innerHTML = '<strong>Demolitions</strong><br>';
+  for (let i = 0; i < grades.length; i++) {
+    div.innerHTML +=
+      '<i style="background:' + getColor(grades[i]) + '"></i> ' +
+      grades[i] + (grades[i + 1] ? '&ndash;' + (grades[i + 1] - 1) + '<br>' : '+');
+  }
+  return div;
+};
+
+legend.addTo(map);
 
 
 fetch (demUrl)
